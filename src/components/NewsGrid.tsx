@@ -234,7 +234,7 @@ export default function NewsGrid({ initialNews = [], currentLang = 'en' }: NewsG
                                                             {/* Read Aloud Full Article */}
                                                             {isSupported && (
                                                                 <button
-                                                                    onClick={() => isPlaying ? stop() : speak((articleContent.content || '').replace(/<[^>]*>?/gm, ''), currentLang)}
+                                                                    onClick={() => isPlaying ? stop() : speak((articleContent.textContent || articleContent.content || '').replace(/<[^>]*>?/gm, ''), currentLang)}
                                                                     style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'none', border: '1px solid #30363d', color: '#8b949e', padding: '6px 12px', borderRadius: '50px', cursor: 'pointer', fontSize: '0.85rem' }}
                                                                 >
                                                                     {isPlaying ? <Square size={14} fill="currentColor" /> : <Play size={14} fill="currentColor" />}

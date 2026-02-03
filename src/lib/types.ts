@@ -20,7 +20,7 @@ export interface WeatherData {
 
 export interface ScrapedArticle {
   content: string | null;
-  html: string | null;
+  textContent?: string | null;
   title?: string | null;
   error?: string;
 }
