@@ -147,14 +147,12 @@ export default function NewsGrid({ initialNews = [], currentLang = 'en' }: NewsG
                             {/* Modal Content Body */}
                             <div className="modal-body" style={activeTab === 'reader' ? { padding: 0 } : { padding: '2rem' }}>
 
-                                {/* Tabs (Hidden in Reader Mode) */}
-                                {activeTab !== 'reader' && (
-                                    <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid #30363d', marginBottom: '2rem' }}>
-                                        <button className={`tab-btn ${activeTab === 'story' ? 'active' : ''}`} onClick={() => setActiveTab('story')} style={{ paddingBottom: '0.5rem', borderBottom: activeTab === 'story' ? '2px solid #1f6feb' : 'none', color: activeTab === 'story' ? '#fff' : '#8b949e', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', fontWeight: 600 }}>Quick Summary</button>
-                                        <button className={`tab-btn ${activeTab === 'reader' ? 'active' : ''}`} onClick={() => setActiveTab('reader')} style={{ paddingBottom: '0.5rem', borderBottom: activeTab === 'reader' ? '2px solid #1f6feb' : 'none', color: activeTab === 'reader' ? '#fff' : '#8b949e', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', fontWeight: 600 }}>Full Article</button>
-                                        <button className={`tab-btn ${activeTab === 'context' ? 'active' : ''}`} onClick={() => setActiveTab('context')} style={{ paddingBottom: '0.5rem', borderBottom: activeTab === 'context' ? '2px solid #1f6feb' : 'none', color: activeTab === 'context' ? '#fff' : '#8b949e', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', fontWeight: 600 }}>Context</button>
-                                    </div>
-                                )}
+                                {/* Tabs (Always Visible now to allow switching back) */}
+                                <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid #30363d', marginBottom: '2rem' }}>
+                                    <button className={`tab-btn ${activeTab === 'story' ? 'active' : ''}`} onClick={() => setActiveTab('story')} style={{ paddingBottom: '0.5rem', borderBottom: activeTab === 'story' ? '2px solid #1f6feb' : 'none', color: activeTab === 'story' ? '#fff' : '#8b949e', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', fontWeight: 600 }}>Quick Summary</button>
+                                    <button className={`tab-btn ${activeTab === 'reader' ? 'active' : ''}`} onClick={() => setActiveTab('reader')} style={{ paddingBottom: '0.5rem', borderBottom: activeTab === 'reader' ? '2px solid #1f6feb' : 'none', color: activeTab === 'reader' ? '#fff' : '#8b949e', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', fontWeight: 600 }}>Full Article</button>
+                                    <button className={`tab-btn ${activeTab === 'context' ? 'active' : ''}`} onClick={() => setActiveTab('context')} style={{ paddingBottom: '0.5rem', borderBottom: activeTab === 'context' ? '2px solid #1f6feb' : 'none', color: activeTab === 'context' ? '#fff' : '#8b949e', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', fontWeight: 600 }}>Context</button>
+                                </div>
 
                                 <div>
                                     {/* 1. Quick Summary */}
