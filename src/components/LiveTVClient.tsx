@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Tv, Play, ExternalLink, Zap } from 'lucide-react';
+import { ArrowLeft, Tv, Radio, ExternalLink, Zap, Signal, Volume2 } from 'lucide-react';
 
 interface Channel {
     id: string;
@@ -11,144 +11,577 @@ interface Channel {
     lang: string;
     youtubeId: string;
     color: string;
+    logo?: string;
 }
 
-// CURATED LIST OF STABLE LIVE STREAM IDs (Verified)
 const CHANNELS: Channel[] = [
     // World News
-    { id: 'sky-news', name: 'Sky News', category: 'World', lang: 'en', youtubeId: '9Auq9mYxFEE', color: '#ef4444' },
-    { id: 'abc-news', name: 'ABC News', category: 'US', lang: 'en', youtubeId: 'gN0PZCe-kwQ', color: '#22c55e' },
-    { id: 'al-jazeera', name: 'Al Jazeera', category: 'World', lang: 'en', youtubeId: 'gCNeDWCI0vo', color: '#eab308' },
-    { id: 'dw-news', name: 'DW News', category: 'World', lang: 'en', youtubeId: '3KkO6j6e_kE', color: '#f97316' },
+    { id: 'sky-news', name: 'Sky News', category: 'World', lang: 'EN', youtubeId: '9Auq9mYxFEE', color: '#ef4444' },
+    { id: 'abc-news', name: 'ABC News', category: 'US', lang: 'EN', youtubeId: 'gN0PZCe-kwQ', color: '#22c55e' },
+    { id: 'al-jazeera', name: 'Al Jazeera', category: 'World', lang: 'EN', youtubeId: 'gCNeDWCI0vo', color: '#eab308' },
+    { id: 'dw-news', name: 'DW News', category: 'World', lang: 'EN', youtubeId: '3KkO6j6e_kE', color: '#f97316' },
 
     // India News
-    { id: 'india-today', name: 'India Today', category: 'India', lang: 'en', youtubeId: 'sYZtOFzM78M', color: '#ef4444' }, // Updated ID
-    { id: 'ndtv', name: 'NDTV 24x7', category: 'India', lang: 'en', youtubeId: 'l9ViEIip9q4', color: '#ef4444' },
-    { id: 'aaj-tak', name: 'Aaj Tak', category: 'India', lang: 'hi', youtubeId: 'Nq2wYlWFucg', color: '#3b82f6' },
-    { id: 'tv9-telugu', name: 'TV9 Telugu', category: 'Regional', lang: 'te', youtubeId: 'II_m28bmKET', color: '#8b5cf6' },
-    { id: 'polimer', name: 'Polimer', category: 'Regional', lang: 'ta', youtubeId: 'E1qK_vJ1cQ0', color: '#ec4899' },
+    { id: 'india-today', name: 'India Today', category: 'India', lang: 'EN', youtubeId: 'sYZtOFzM78M', color: '#ef4444' },
+    { id: 'ndtv', name: 'NDTV 24x7', category: 'India', lang: 'EN', youtubeId: 'l9ViEIip9q4', color: '#ef4444' },
+    { id: 'aaj-tak', name: 'Aaj Tak', category: 'India', lang: 'HI', youtubeId: 'Nq2wYlWFucg', color: '#3b82f6' },
+    { id: 'tv9-telugu', name: 'TV9 Telugu', category: 'Regional', lang: 'TE', youtubeId: 'II_m28bmKET', color: '#8b5cf6' },
+    { id: 'polimer', name: 'Polimer', category: 'Regional', lang: 'TA', youtubeId: 'E1qK_vJ1cQ0', color: '#ec4899' },
 
     // Tech/Space
-    { id: 'nasa', name: 'NASA Live', category: 'Space', lang: 'en', youtubeId: '21X5lGlDOfg', color: '#06b6d4' },
+    { id: 'nasa', name: 'NASA Live', category: 'Space', lang: 'EN', youtubeId: '21X5lGlDOfg', color: '#06b6d4' },
 ];
 
 export default function LiveTVClient() {
     const [activeChannel, setActiveChannel] = useState<Channel>(CHANNELS[0]);
 
-    return (
-        <div className="min-h-screen bg-[#050505] text-white font-sans flex flex-col md:flex-row">
+    const getCategoryStyle = (category: string) => {
+        switch (category) {
+            case 'World': return { bg: 'rgba(239, 68, 68, 0.1)', text: '#ef4444' };
+            case 'US': return { bg: 'rgba(34, 197, 94, 0.1)', text: '#22c55e' };
+            case 'India': return { bg: 'rgba(249, 115, 22, 0.1)', text: '#f97316' };
+            case 'Regional': return { bg: 'rgba(139, 92, 246, 0.1)', text: '#8b5cf6' };
+            case 'Space': return { bg: 'rgba(6, 182, 212, 0.1)', text: '#06b6d4' };
+            default: return { bg: 'rgba(255, 255, 255, 0.1)', text: '#fff' };
+        }
+    };
 
-            {/* Sidebar / Channel List */}
-            <aside className="w-full md:w-80 h-[40vh] md:h-screen bg-[#0E121B] border-r border-[#1a1f2e] overflow-y-auto flex flex-col z-20">
-                <div className="p-6 sticky top-0 bg-[#0E121B]/95 backdrop-blur-md z-10 border-b border-white/5">
-                    <div className="flex items-center gap-4 mb-6">
-                        <Link href="/" className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition-all border border-white/5">
-                            <ArrowLeft size={20} />
-                        </Link>
+    return (
+        <div className="livetv-container">
+            {/* Background */}
+            <div className="livetv-bg" />
+
+            {/* Sidebar */}
+            <aside className="livetv-sidebar">
+                <div className="sidebar-header">
+                    <Link href="/" className="back-btn">
+                        <ArrowLeft size={18} />
+                    </Link>
+                    <div className="brand">
+                        <div className="brand-icon">
+                            <Radio size={18} />
+                        </div>
                         <div>
-                            <h1 className="text-xl font-bold tracking-tight">Live TV</h1>
-                            <p className="text-xs text-white/40 font-medium tracking-wider uppercase">Global Broadcasts</p>
+                            <h1>Live TV</h1>
+                            <span>Global Broadcasts</span>
                         </div>
                     </div>
                 </div>
 
-                <div className="px-3 pb-6 space-y-1">
-                    {CHANNELS.map(channel => (
-                        <button
-                            key={channel.id}
-                            onClick={() => setActiveChannel(channel)}
-                            className={`w-full group relative flex items-center gap-4 p-4 rounded-xl transition-all duration-300 ${activeChannel.id === channel.id ? 'bg-white/10' : 'hover:bg-white/5'}`}
-                        >
-                            {/* Live Indicator Dot */}
-                            <div className={`absolute left-0 w-1 h-8 rounded-r-full transition-all duration-300 ${activeChannel.id === channel.id ? 'opacity-100' : 'opacity-0'}`} style={{ backgroundColor: channel.color }} />
+                <div className="channels-list">
+                    {CHANNELS.map(channel => {
+                        const isActive = activeChannel.id === channel.id;
+                        const catStyle = getCategoryStyle(channel.category);
 
-                            {/* Icon Box */}
-                            <div className="relative">
-                                <div className={`w-12 h-12 rounded-full flex items-center justify-center border border-white/10 transition-all ${activeChannel.id === channel.id ? 'scale-110 shadow-lg' : 'grayscale group-hover:grayscale-0'}`} style={{ backgroundColor: `${channel.color}20` }}>
-                                    <Tv size={20} style={{ color: channel.color }} />
+                        return (
+                            <button
+                                key={channel.id}
+                                onClick={() => setActiveChannel(channel)}
+                                className={`channel-card ${isActive ? 'active' : ''}`}
+                            >
+                                {/* Active Indicator */}
+                                {isActive && <div className="active-bar" style={{ background: channel.color }} />}
+
+                                {/* Channel Icon */}
+                                <div className="channel-icon" style={{
+                                    background: `${channel.color}15`,
+                                    borderColor: isActive ? channel.color : 'transparent'
+                                }}>
+                                    <Tv size={18} style={{ color: channel.color }} />
+                                    {isActive && (
+                                        <div className="live-indicator">
+                                            <span />
+                                        </div>
+                                    )}
                                 </div>
-                                {activeChannel.id === channel.id && (
-                                    <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-red-500 border-2 border-[#0E121B] flex items-center justify-center z-10">
-                                        <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+
+                                {/* Channel Info */}
+                                <div className="channel-info">
+                                    <h3>{channel.name}</h3>
+                                    <div className="channel-meta">
+                                        <span className="lang-badge">{channel.lang}</span>
+                                        <span className="category" style={{
+                                            background: catStyle.bg,
+                                            color: catStyle.text
+                                        }}>
+                                            {channel.category}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Playing Indicator */}
+                                {isActive && (
+                                    <div className="playing-indicator">
+                                        <Signal size={14} />
                                     </div>
                                 )}
-                            </div>
-
-                            <div className="text-left flex-1">
-                                <h3 className={`font-semibold text-sm transition-colors ${activeChannel.id === channel.id ? 'text-white' : 'text-zinc-400 group-hover:text-zinc-200'}`}>
-                                    {channel.name}
-                                </h3>
-                                <div className="flex items-center gap-2 mt-1">
-                                    <span className="text-[10px] uppercase font-bold text-white/30 px-1.5 py-0.5 rounded-md bg-white/5 border border-white/5">
-                                        {channel.lang}
-                                    </span>
-                                    <span className="text-[10px] text-white/30">
-                                        {channel.category}
-                                    </span>
-                                </div>
-                            </div>
-
-                            {activeChannel.id === channel.id && (
-                                <Zap size={16} className="text-white/50 animate-pulse ml-auto" />
-                            )}
-                        </button>
-                    ))}
+                            </button>
+                        );
+                    })}
                 </div>
             </aside>
 
-            {/* Main Player Area */}
-            <main className="flex-1 h-[60vh] md:h-screen relative bg-black flex flex-col">
-                {/* Embed Container */}
-                <div className="flex-1 w-full h-full relative group bg-zinc-900/50">
+            {/* Main Player */}
+            <main className="livetv-main">
+                {/* Video Container */}
+                <div className="video-container">
                     <iframe
                         key={activeChannel.youtubeId}
                         src={`https://www.youtube.com/embed/${activeChannel.youtubeId}?autoplay=1&mute=0&playsinline=1&rel=0&showinfo=0&modestbranding=1`}
                         title={activeChannel.name}
-                        className="absolute inset-0 w-full h-full object-cover"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowFullScreen
                     />
 
-                    {/* Watch on YouTube Fallback Overlay (Visible on Hover or when empty) */}
-                    <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <a
-                            href={`https://www.youtube.com/watch?v=${activeChannel.youtubeId}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-2 px-4 py-2 bg-black/80 backdrop-blur-md border border-white/10 rounded-full text-sm font-bold hover:bg-red-600 transition-colors shadow-2xl"
-                        >
-                            <span>Open in YouTube</span>
-                            <ExternalLink size={16} />
-                        </a>
-                    </div>
+                    {/* YouTube Link Overlay */}
+                    <a
+                        href={`https://www.youtube.com/watch?v=${activeChannel.youtubeId}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="youtube-link"
+                    >
+                        <ExternalLink size={14} />
+                        <span>Open in YouTube</span>
+                    </a>
                 </div>
 
-                {/* Info Bar (Bottom) */}
-                <div className="p-6 bg-[#0E121B] border-t border-white/5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                    <div className="flex flex-col gap-1">
-                        <div className="flex items-center gap-2">
-                            <span className="real-live-dot w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_10px_#ef4444]" />
-                            <span className="text-red-500 text-xs font-bold uppercase tracking-wider">Live Signal</span>
+                {/* Info Bar */}
+                <div className="info-bar">
+                    <div className="info-content">
+                        <div className="live-badge">
+                            <span className="live-dot" />
+                            <span>LIVE</span>
                         </div>
-                        <h2 className="text-2xl font-bold text-white tracking-tight">{activeChannel.name}</h2>
-                        <p className="text-sm text-zinc-400">
+                        <h2>{activeChannel.name}</h2>
+                        <p>
+                            <Volume2 size={14} />
                             Streaming via YouTube • {activeChannel.category}
                         </p>
                     </div>
 
-                    <div className="flex gap-3">
-                        <a
-                            href={`https://www.youtube.com/watch?v=${activeChannel.youtubeId}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors border border-white/10 text-white flex items-center gap-2 px-6 shadow-lg"
-                        >
-                            <Tv size={18} />
-                            <span className="text-sm font-semibold">Watch on YouTube</span>
-                        </a>
-                    </div>
+                    <a
+                        href={`https://www.youtube.com/watch?v=${activeChannel.youtubeId}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="watch-btn"
+                    >
+                        <Tv size={16} />
+                        <span>Watch on YouTube</span>
+                    </a>
                 </div>
             </main>
+
+            <style jsx global>{`
+                .livetv-container {
+                    min-height: 100vh;
+                    background: #0a0a0f;
+                    color: white;
+                    font-family: 'Inter', sans-serif;
+                    display: flex;
+                    flex-direction: column;
+                }
+                
+                .livetv-bg {
+                    position: fixed;
+                    inset: 0;
+                    background: 
+                        radial-gradient(ellipse 60% 40% at 70% 10%, rgba(124, 58, 237, 0.12), transparent),
+                        radial-gradient(ellipse 40% 30% at 30% 90%, rgba(6, 182, 212, 0.08), transparent);
+                    pointer-events: none;
+                    z-index: 0;
+                }
+                
+                .livetv-sidebar {
+                    width: 100%;
+                    max-height: 45vh;
+                    background: rgba(16, 16, 24, 0.9);
+                    backdrop-filter: blur(20px);
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+                    overflow-y: auto;
+                    z-index: 10;
+                    display: flex;
+                    flex-direction: column;
+                }
+                
+                .sidebar-header {
+                    padding: 1.25rem;
+                    display: flex;
+                    align-items: center;
+                    gap: 1rem;
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+                    position: sticky;
+                    top: 0;
+                    background: rgba(16, 16, 24, 0.95);
+                    backdrop-filter: blur(10px);
+                    z-index: 5;
+                }
+                
+                .back-btn {
+                    width: 40px;
+                    height: 40px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    background: rgba(255, 255, 255, 0.06);
+                    border: 1px solid rgba(255, 255, 255, 0.08);
+                    border-radius: 12px;
+                    color: white;
+                    transition: all 0.2s;
+                }
+                
+                .back-btn:hover {
+                    background: rgba(255, 255, 255, 0.1);
+                }
+                
+                .brand {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                }
+                
+                .brand-icon {
+                    width: 40px;
+                    height: 40px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    background: linear-gradient(135deg, #7c3aed, #ec4899);
+                    border-radius: 12px;
+                    box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
+                }
+                
+                .brand h1 {
+                    font-size: 1.1rem;
+                    font-weight: 700;
+                    margin: 0;
+                }
+                
+                .brand span {
+                    font-size: 0.7rem;
+                    color: rgba(255, 255, 255, 0.4);
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                }
+                
+                .channels-list {
+                    padding: 0.75rem;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 4px;
+                }
+                
+                .channel-card {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    padding: 12px;
+                    background: none;
+                    border: 1px solid transparent;
+                    border-radius: 14px;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    position: relative;
+                    text-align: left;
+                    width: 100%;
+                }
+                
+                .channel-card:hover {
+                    background: rgba(255, 255, 255, 0.04);
+                }
+                
+                .channel-card.active {
+                    background: rgba(255, 255, 255, 0.06);
+                    border-color: rgba(255, 255, 255, 0.08);
+                }
+                
+                .active-bar {
+                    position: absolute;
+                    left: 0;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    width: 3px;
+                    height: 24px;
+                    border-radius: 0 3px 3px 0;
+                }
+                
+                .channel-icon {
+                    width: 44px;
+                    height: 44px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border-radius: 12px;
+                    border: 2px solid;
+                    position: relative;
+                    flex-shrink: 0;
+                    transition: all 0.2s;
+                }
+                
+                .live-indicator {
+                    position: absolute;
+                    bottom: -2px;
+                    right: -2px;
+                    width: 14px;
+                    height: 14px;
+                    background: #ef4444;
+                    border-radius: 50%;
+                    border: 2px solid #0a0a0f;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                
+                .live-indicator span {
+                    width: 6px;
+                    height: 6px;
+                    background: white;
+                    border-radius: 50%;
+                    animation: pulse 1.5s infinite;
+                }
+                
+                .channel-info {
+                    flex: 1;
+                    min-width: 0;
+                }
+                
+                .channel-info h3 {
+                    font-size: 0.9rem;
+                    font-weight: 600;
+                    color: white;
+                    margin: 0 0 4px;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
+                
+                .channel-meta {
+                    display: flex;
+                    gap: 6px;
+                    align-items: center;
+                }
+                
+                .lang-badge {
+                    font-size: 0.6rem;
+                    font-weight: 700;
+                    padding: 2px 6px;
+                    background: rgba(255, 255, 255, 0.1);
+                    border-radius: 4px;
+                    color: rgba(255, 255, 255, 0.6);
+                }
+                
+                .category {
+                    font-size: 0.6rem;
+                    font-weight: 600;
+                    padding: 2px 8px;
+                    border-radius: 4px;
+                }
+                
+                .playing-indicator {
+                    color: #7c3aed;
+                    animation: pulse 2s infinite;
+                }
+                
+                .livetv-main {
+                    flex: 1;
+                    display: flex;
+                    flex-direction: column;
+                    min-height: 55vh;
+                    position: relative;
+                    z-index: 5;
+                }
+                
+                .video-container {
+                    flex: 1;
+                    position: relative;
+                    background: #000;
+                }
+                
+                .video-container iframe {
+                    position: absolute;
+                    inset: 0;
+                    width: 100%;
+                    height: 100%;
+                    border: none;
+                }
+                
+                .youtube-link {
+                    position: absolute;
+                    top: 1rem;
+                    right: 1rem;
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    padding: 8px 14px;
+                    background: rgba(0, 0, 0, 0.8);
+                    backdrop-filter: blur(10px);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 50px;
+                    color: white;
+                    font-size: 0.75rem;
+                    font-weight: 600;
+                    opacity: 0;
+                    transition: all 0.3s;
+                    text-decoration: none;
+                }
+                
+                .video-container:hover .youtube-link {
+                    opacity: 1;
+                }
+                
+                .youtube-link:hover {
+                    background: #ef4444;
+                    border-color: #ef4444;
+                }
+                
+                .info-bar {
+                    padding: 1.25rem;
+                    background: rgba(16, 16, 24, 0.95);
+                    backdrop-filter: blur(20px);
+                    border-top: 1px solid rgba(255, 255, 255, 0.06);
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    gap: 1rem;
+                    flex-wrap: wrap;
+                }
+                
+                .info-content {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 4px;
+                }
+                
+                .live-badge {
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    font-size: 0.65rem;
+                    font-weight: 700;
+                    color: #ef4444;
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                }
+                
+                .live-dot {
+                    width: 8px;
+                    height: 8px;
+                    background: #ef4444;
+                    border-radius: 50%;
+                    box-shadow: 0 0 10px #ef4444;
+                    animation: pulse 1.5s infinite;
+                }
+                
+                .info-content h2 {
+                    font-size: 1.25rem;
+                    font-weight: 700;
+                    margin: 0;
+                }
+                
+                .info-content p {
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    font-size: 0.8rem;
+                    color: rgba(255, 255, 255, 0.5);
+                    margin: 0;
+                }
+                
+                .watch-btn {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    padding: 12px 20px;
+                    background: linear-gradient(135deg, #7c3aed, #ec4899);
+                    border: none;
+                    border-radius: 12px;
+                    color: white;
+                    font-size: 0.85rem;
+                    font-weight: 700;
+                    text-decoration: none;
+                    box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
+                    transition: all 0.2s;
+                }
+                
+                .watch-btn:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
+                }
+                
+                @keyframes pulse {
+                    0%, 100% { opacity: 1; }
+                    50% { opacity: 0.5; }
+                }
+                
+                /* Desktop Styles */
+                @media (min-width: 1024px) {
+                    .livetv-container {
+                        flex-direction: row;
+                    }
+                    
+                    .livetv-sidebar {
+                        width: 320px;
+                        max-height: 100vh;
+                        height: 100vh;
+                        border-bottom: none;
+                        border-right: 1px solid rgba(255, 255, 255, 0.06);
+                    }
+                    
+                    .livetv-main {
+                        min-height: 100vh;
+                    }
+                    
+                    .channel-card {
+                        padding: 14px;
+                    }
+                    
+                    .channel-icon {
+                        width: 48px;
+                        height: 48px;
+                    }
+                    
+                    .channel-info h3 {
+                        font-size: 0.95rem;
+                    }
+                    
+                    .info-bar {
+                        padding: 1.5rem 2rem;
+                    }
+                    
+                    .info-content h2 {
+                        font-size: 1.5rem;
+                    }
+                }
+                
+                /* Mobile Adjustments */
+                @media (max-width: 480px) {
+                    .sidebar-header {
+                        padding: 1rem;
+                    }
+                    
+                    .channels-list {
+                        padding: 0.5rem;
+                    }
+                    
+                    .channel-card {
+                        padding: 10px;
+                    }
+                    
+                    .channel-icon {
+                        width: 38px;
+                        height: 38px;
+                    }
+                    
+                    .info-bar {
+                        flex-direction: column;
+                        align-items: flex-start;
+                    }
+                    
+                    .watch-btn {
+                        width: 100%;
+                        justify-content: center;
+                    }
+                }
+            `}</style>
         </div>
     );
 }

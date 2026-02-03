@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { NewsItem } from '@/lib/types';
 import ReelItem from './ReelItem';
-import { ArrowLeft, Globe } from 'lucide-react';
+import { ArrowLeft, Globe, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 
 interface NewsReelsClientProps {
@@ -14,25 +14,25 @@ interface NewsReelsClientProps {
 }
 
 const CATEGORIES = [
-    { id: 'all', label: 'For You' },
-    { id: 'tech', label: 'Tech' },
-    { id: 'science', label: 'Science' },
-    { id: 'entertainment', label: 'Life' },
-    { id: 'sports', label: 'Sports' },
-    { id: 'business', label: 'Business' }
+    { id: 'all', label: 'For You', icon: '✨' },
+    { id: 'tech', label: 'Tech', icon: '💻' },
+    { id: 'science', label: 'Science', icon: '🔬' },
+    { id: 'entertainment', label: 'Life', icon: '🎭' },
+    { id: 'sports', label: 'Sports', icon: '⚽' },
+    { id: 'business', label: 'Business', icon: '📈' }
 ];
 
 const LANGUAGES = [
-    { code: 'en', label: 'English' },
-    { code: 'hi', label: 'Hindi' },
-    { code: 'ta', label: 'Tamil' },
-    { code: 'te', label: 'Telugu' },
-    { code: 'kn', label: 'Kannada' },
-    { code: 'ml', label: 'Malayalam' },
-    { code: 'bn', label: 'Bengali' },
-    { code: 'mr', label: 'Marathi' },
-    { code: 'gu', label: 'Gujarati' },
-    { code: 'pa', label: 'Punjabi' }
+    { code: 'en', label: 'English', flag: '🇬🇧' },
+    { code: 'hi', label: 'Hindi', flag: '🇮🇳' },
+    { code: 'ta', label: 'Tamil', flag: '🇮🇳' },
+    { code: 'te', label: 'Telugu', flag: '🇮🇳' },
+    { code: 'kn', label: 'Kannada', flag: '🇮🇳' },
+    { code: 'ml', label: 'Malayalam', flag: '🇮🇳' },
+    { code: 'bn', label: 'Bengali', flag: '🇮🇳' },
+    { code: 'mr', label: 'Marathi', flag: '🇮🇳' },
+    { code: 'gu', label: 'Gujarati', flag: '🇮🇳' },
+    { code: 'pa', label: 'Punjabi', flag: '🇮🇳' }
 ];
 
 export default function NewsReelsClient({ initialNews, currentLang = 'en', currentCategory = 'all' }: NewsReelsClientProps) {
@@ -41,25 +41,22 @@ export default function NewsReelsClient({ initialNews, currentLang = 'en', curre
     const router = useRouter();
     const [activeTab, setActiveTab] = useState(currentCategory);
     const [showLangMenu, setShowLangMenu] = useState(false);
-
     const [isAutoPlay, setIsAutoPlay] = useState(false);
 
-    // Sync state with props if they change externally (e.g. navigation)
     useEffect(() => {
         setActiveTab(currentCategory);
     }, [currentCategory]);
 
     const handleCategoryChange = (catId: string) => {
-        setIsAutoPlay(false); // Reset auto-play on category change
+        setIsAutoPlay(false);
         setActiveTab(catId);
         router.push(`/reels?region=global&lang=${currentLang}&category=${catId}`);
     };
 
     const handleLangChange = (langCode: string) => {
         setShowLangMenu(false);
-        setIsAutoPlay(false); // Reset on lang change
+        setIsAutoPlay(false);
         router.push(`/reels?region=global&lang=${langCode}&category=${activeTab}`);
-        // Force refresh to ensure server action fetches new data
         router.refresh();
     };
 
@@ -79,76 +76,71 @@ export default function NewsReelsClient({ initialNews, currentLang = 'en', curre
     }, [activeIndex]);
 
     return (
-        <div className="fixed inset-0 z-50 bg-black text-white font-sans">
+        <div className="reels-container">
+            {/* Premium Gradient Background */}
+            <div className="reels-bg-gradient" />
 
-            {/* Top Bar: Floating Glass Island */}
-            <div className="absolute top-0 left-0 right-0 z-40 pt-4 px-4 flex flex-col items-center pointer-events-none">
-
-                {/* Header Row */}
-                <div className="w-full max-w-md flex justify-between items-center mb-4 pointer-events-auto relative">
-                    <Link href="/" className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-xl border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg">
+            {/* Top Navigation */}
+            <header className="reels-header">
+                <div className="reels-header-content">
+                    {/* Back Button */}
+                    <Link href="/" className="reels-back-btn">
                         <ArrowLeft size={20} />
                     </Link>
 
-                    {/* Centered Logo/Brand for Reels */}
-                    <div className="flex flex-col items-center">
-                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">Smart News</span>
-                        <span className="text-lg font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-tr from-white to-white/60 drop-shadow-sm">
+                    {/* Brand */}
+                    <div className="reels-brand">
+                        <span className="reels-brand-sub">Nexus News</span>
+                        <span className="reels-brand-main">
+                            <Sparkles size={16} />
                             REELS
                         </span>
                     </div>
 
-                    {/* Language Switcher Button */}
+                    {/* Language Button */}
                     <button
                         onClick={() => setShowLangMenu(!showLangMenu)}
-                        className={`w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-xl border transition-all shadow-lg ${showLangMenu ? 'bg-white text-black border-white' : 'bg-white/10 border-white/10 text-white hover:bg-white/20'}`}
+                        className={`reels-lang-btn ${showLangMenu ? 'active' : ''}`}
                     >
-                        <Globe size={20} />
+                        <Globe size={18} />
                     </button>
 
-                    {/* Language Menu Dropdown */}
+                    {/* Language Dropdown */}
                     {showLangMenu && (
-                        <div className="absolute top-14 right-0 w-40 bg-[#0E121B] border border-white/10 rounded-xl shadow-2xl overflow-hidden backdrop-blur-xl flex flex-col p-1 z-50 animate-in fade-in zoom-in-95 duration-200">
-                            <div className="max-h-60 overflow-y-auto no-scrollbar">
-                                {LANGUAGES.map((lang) => (
-                                    <button
-                                        key={lang.code}
-                                        onClick={() => handleLangChange(lang.code)}
-                                        className={`w-full text-left px-4 py-2.5 text-sm font-medium rounded-lg transition-colors ${currentLang === lang.code ? 'bg-white/10 text-white' : 'text-white/60 hover:text-white hover:bg-white/5'}`}
-                                    >
-                                        {lang.label}
-                                    </button>
-                                ))}
-                            </div>
+                        <div className="reels-lang-menu">
+                            {LANGUAGES.map((lang) => (
+                                <button
+                                    key={lang.code}
+                                    onClick={() => handleLangChange(lang.code)}
+                                    className={`reels-lang-option ${currentLang === lang.code ? 'active' : ''}`}
+                                >
+                                    <span>{lang.flag}</span>
+                                    <span>{lang.label}</span>
+                                </button>
+                            ))}
                         </div>
                     )}
                 </div>
 
-                {/* Categories Pill: Centered & Floating */}
-                <div className="flex gap-2 overflow-x-auto no-scrollbar pointer-events-auto max-w-full px-2 py-2 mask-linear-fade">
+                {/* Category Pills */}
+                <div className="reels-categories">
                     {CATEGORIES.map(cat => (
                         <button
                             key={cat.id}
                             onClick={() => handleCategoryChange(cat.id)}
-                            className={`
-                                relative whitespace-nowrap px-4 py-1.5 rounded-full text-[13px] font-bold tracking-wide transition-all duration-300
-                                ${activeTab === cat.id
-                                    ? 'bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.4)] scale-105'
-                                    : 'bg-black/40 text-white/70 backdrop-blur-md border border-white/10 hover:bg-white/10'
-                                }
-                            `}
+                            className={`reels-category-btn ${activeTab === cat.id ? 'active' : ''}`}
                         >
-                            {cat.label}
+                            <span className="cat-icon">{cat.icon}</span>
+                            <span>{cat.label}</span>
                         </button>
                     ))}
                 </div>
-            </div>
+            </header>
 
-            {/* Vertical Scroll Container */}
+            {/* Reels Scroll Container */}
             <div
                 ref={containerRef}
-                className="h-[100dvh] w-full overflow-y-scroll snap-y snap-mandatory scroll-smooth no-scrollbar"
-                style={{ scrollBehavior: 'smooth' }}
+                className="reels-scroll-container"
             >
                 {initialNews.map((news, index) => (
                     <ReelItem
@@ -162,24 +154,307 @@ export default function NewsReelsClient({ initialNews, currentLang = 'en', curre
                 ))}
 
                 {initialNews.length === 0 && (
-                    <div className="h-full w-full flex flex-col items-center justify-center snap-start bg-zinc-900">
-                        <p className="text-white/40 font-medium mb-4">No stories found.</p>
-                        <button
-                            onClick={() => handleCategoryChange('all')}
-                            className="px-6 py-2 bg-white text-black rounded-full font-bold text-sm shadow-xl"
-                        >
+                    <div className="reels-empty">
+                        <p>No stories found in this category</p>
+                        <button onClick={() => handleCategoryChange('all')} className="reels-empty-btn">
                             Back to For You
                         </button>
                     </div>
                 )}
             </div>
 
+            {/* Scroll Indicator */}
+            <div className="reels-progress">
+                {initialNews.slice(0, 10).map((_, i) => (
+                    <div key={i} className={`progress-dot ${i === activeIndex ? 'active' : ''}`} />
+                ))}
+            </div>
+
             <style jsx global>{`
-                .no-scrollbar::-webkit-scrollbar { display: none; }
-                .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-                .mask-linear-fade {
-                     -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
-                     mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+                .reels-container {
+                    position: fixed;
+                    inset: 0;
+                    background: #0a0a0f;
+                    color: white;
+                    font-family: 'Inter', sans-serif;
+                    z-index: 100;
+                    overflow: hidden;
+                }
+                
+                .reels-bg-gradient {
+                    position: absolute;
+                    inset: 0;
+                    background: 
+                        radial-gradient(ellipse 50% 30% at 50% 0%, rgba(124, 58, 237, 0.2), transparent),
+                        radial-gradient(ellipse 40% 20% at 100% 100%, rgba(236, 72, 153, 0.15), transparent);
+                    pointer-events: none;
+                    z-index: 0;
+                }
+                
+                .reels-header {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    z-index: 50;
+                    padding: 1rem;
+                    padding-top: max(1rem, env(safe-area-inset-top));
+                    display: flex;
+                    flex-direction: column;
+                    gap: 1rem;
+                    pointer-events: none;
+                }
+                
+                .reels-header-content {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    pointer-events: auto;
+                    position: relative;
+                    max-width: 500px;
+                    margin: 0 auto;
+                    width: 100%;
+                }
+                
+                .reels-back-btn {
+                    width: 44px;
+                    height: 44px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    background: rgba(255, 255, 255, 0.1);
+                    backdrop-filter: blur(20px);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 50%;
+                    color: white;
+                    transition: all 0.2s;
+                }
+                
+                .reels-back-btn:hover {
+                    background: rgba(255, 255, 255, 0.2);
+                    transform: scale(1.05);
+                }
+                
+                .reels-brand {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    text-align: center;
+                }
+                
+                .reels-brand-sub {
+                    font-size: 0.6rem;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    letter-spacing: 3px;
+                    color: rgba(255, 255, 255, 0.4);
+                }
+                
+                .reels-brand-main {
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    font-size: 1.25rem;
+                    font-weight: 900;
+                    background: linear-gradient(135deg, #7c3aed, #ec4899);
+                    -webkit-background-clip: text;
+                    background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    letter-spacing: -0.5px;
+                }
+                
+                .reels-lang-btn {
+                    width: 44px;
+                    height: 44px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    background: rgba(255, 255, 255, 0.1);
+                    backdrop-filter: blur(20px);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 50%;
+                    color: white;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                }
+                
+                .reels-lang-btn:hover, .reels-lang-btn.active {
+                    background: white;
+                    color: #0a0a0f;
+                }
+                
+                .reels-lang-menu {
+                    position: absolute;
+                    top: 56px;
+                    right: 0;
+                    width: 180px;
+                    background: rgba(22, 22, 31, 0.95);
+                    backdrop-filter: blur(20px);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 16px;
+                    padding: 8px;
+                    max-height: 300px;
+                    overflow-y: auto;
+                    animation: fadeIn 0.2s ease;
+                }
+                
+                .reels-lang-option {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    width: 100%;
+                    padding: 10px 12px;
+                    background: none;
+                    border: none;
+                    border-radius: 10px;
+                    color: rgba(255, 255, 255, 0.6);
+                    font-size: 0.9rem;
+                    font-weight: 500;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    text-align: left;
+                }
+                
+                .reels-lang-option:hover {
+                    background: rgba(255, 255, 255, 0.1);
+                    color: white;
+                }
+                
+                .reels-lang-option.active {
+                    background: linear-gradient(135deg, rgba(124, 58, 237, 0.3), rgba(236, 72, 153, 0.3));
+                    color: white;
+                }
+                
+                .reels-categories {
+                    display: flex;
+                    gap: 8px;
+                    overflow-x: auto;
+                    padding: 0 1rem;
+                    pointer-events: auto;
+                    justify-content: center;
+                    -webkit-overflow-scrolling: touch;
+                }
+                
+                .reels-categories::-webkit-scrollbar {
+                    display: none;
+                }
+                
+                .reels-category-btn {
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    padding: 8px 16px;
+                    background: rgba(255, 255, 255, 0.08);
+                    backdrop-filter: blur(10px);
+                    border: 1px solid rgba(255, 255, 255, 0.08);
+                    border-radius: 50px;
+                    color: rgba(255, 255, 255, 0.6);
+                    font-size: 0.8rem;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    white-space: nowrap;
+                }
+                
+                .reels-category-btn:hover {
+                    background: rgba(255, 255, 255, 0.15);
+                    color: white;
+                }
+                
+                .reels-category-btn.active {
+                    background: linear-gradient(135deg, #7c3aed, #ec4899);
+                    border-color: transparent;
+                    color: white;
+                    box-shadow: 0 4px 20px rgba(124, 58, 237, 0.4);
+                    transform: scale(1.05);
+                }
+                
+                .reels-category-btn .cat-icon {
+                    font-size: 1rem;
+                }
+                
+                .reels-scroll-container {
+                    height: 100dvh;
+                    width: 100%;
+                    overflow-y: scroll;
+                    scroll-snap-type: y mandatory;
+                    scroll-behavior: smooth;
+                    -webkit-overflow-scrolling: touch;
+                }
+                
+                .reels-scroll-container::-webkit-scrollbar {
+                    display: none;
+                }
+                
+                .reels-empty {
+                    height: 100dvh;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 1.5rem;
+                    scroll-snap-align: start;
+                }
+                
+                .reels-empty p {
+                    color: rgba(255, 255, 255, 0.4);
+                    font-size: 1rem;
+                }
+                
+                .reels-empty-btn {
+                    padding: 12px 24px;
+                    background: linear-gradient(135deg, #7c3aed, #ec4899);
+                    border: none;
+                    border-radius: 50px;
+                    color: white;
+                    font-weight: 700;
+                    cursor: pointer;
+                    box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4);
+                }
+                
+                .reels-progress {
+                    position: absolute;
+                    right: 1rem;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    display: flex;
+                    flex-direction: column;
+                    gap: 6px;
+                    z-index: 30;
+                }
+                
+                .progress-dot {
+                    width: 6px;
+                    height: 6px;
+                    border-radius: 50%;
+                    background: rgba(255, 255, 255, 0.2);
+                    transition: all 0.3s;
+                }
+                
+                .progress-dot.active {
+                    background: linear-gradient(135deg, #7c3aed, #ec4899);
+                    box-shadow: 0 0 10px rgba(124, 58, 237, 0.6);
+                    transform: scale(1.3);
+                }
+                
+                @keyframes fadeIn {
+                    from { opacity: 0; transform: translateY(-10px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                
+                @media (max-width: 768px) {
+                    .reels-header-content {
+                        padding: 0 0.5rem;
+                    }
+                    
+                    .reels-category-btn {
+                        padding: 6px 12px;
+                        font-size: 0.75rem;
+                    }
+                    
+                    .reels-progress {
+                        right: 0.5rem;
+                    }
                 }
             `}</style>
         </div>
