@@ -105,14 +105,22 @@ export default function NewsGrid({ initialNews = [], currentLang = 'en' }: NewsG
             {/* Expanded Modal */}
             <AnimatePresence>
                 {selectedNews && (
-                    <div className="modal-overlay" onClick={() => setSelectedNews(null)}>
+                    <motion.div
+                        className="modal-overlay"
+                        onClick={() => setSelectedNews(null)}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        style={{ zIndex: 200 }} // Ensure it is above Mobile Nav (z-100)
+                    >
                         <motion.div
-                            layoutId={`card-${selectedNews.id}`}
+                            layoutId={window.innerWidth > 768 ? `card-${selectedNews.id}` : undefined} // Disable layoutId on mobile for smoother standard transition
                             className="modal-content"
                             onClick={(e) => e.stopPropagation()}
-                            initial={{ scale: 0.95, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.95, opacity: 0 }}
+                            initial={{ y: '100%', opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            exit={{ y: '100%', opacity: 0 }}
+                            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
                         >
 
                             <button
@@ -285,7 +293,7 @@ export default function NewsGrid({ initialNews = [], currentLang = 'en' }: NewsG
                                 </div>
                             </div>
                         </motion.div>
-                    </div>
+                    </motion.div>
                 )}
             </AnimatePresence>
         </div>
