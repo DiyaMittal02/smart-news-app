@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { NewsItem, ScrapedArticle } from '@/lib/types';
 import NewsCard from './NewsCard';
 import {
-    X, Search, RefreshCw, Activity, FileText, ExternalLink, Play, Square
+    X, Search, RefreshCw, FileText, ExternalLink, Play, Square, ArrowLeft
 } from 'lucide-react';
 import { getFullArticle } from '@/lib/scraper';
 import { useSpeech } from '@/hooks/use-speech';
@@ -25,24 +25,25 @@ export default function NewsGrid({ initialNews = [], currentLang = 'en' }: NewsG
     const [articleContent, setArticleContent] = useState<ScrapedArticle | null>(null);
     const [loadingArticle, setLoadingArticle] = useState(false);
 
-    // Audio Hook
     const { speak, stop, isPlaying, isSupported } = useSpeech();
-
     const router = useRouter();
 
     useEffect(() => {
         setNews(initialNews);
     }, [initialNews]);
 
-    // When expanding a card, reset article state
     const handleCardClick = (n: NewsItem) => {
         setSelectedNews(n);
         setActiveTab('story');
         setArticleContent(null);
-        stop(); // Stop any playing audio
+        stop();
     };
 
-    // Stop audio when modal closes
+    const closeModal = () => {
+        setSelectedNews(null);
+        stop();
+    };
+
     useEffect(() => {
         if (!selectedNews) stop();
     }, [selectedNews, stop]);
@@ -73,7 +74,6 @@ export default function NewsGrid({ initialNews = [], currentLang = 'en' }: NewsG
 
     return (
         <div className="nexus-container">
-
             {/* Search & Refresh Toolbar */}
             <div className="toolbar">
                 <div className="search-bar">
@@ -102,193 +102,165 @@ export default function NewsGrid({ initialNews = [], currentLang = 'en' }: NewsG
                 ))}
             </div>
 
-            {/* Expanded Modal */}
+            {/* MOBILE-OPTIMIZED FULL SCREEN MODAL */}
             <AnimatePresence>
                 {selectedNews && (
                     <motion.div
-                        className="modal-overlay"
-                        onClick={() => setSelectedNews(null)}
+                        className="news-detail-overlay"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        style={{ zIndex: 200 }} // Ensure it is above Mobile Nav (z-100)
                     >
                         <motion.div
-                            layoutId={window.innerWidth > 768 ? `card-${selectedNews.id}` : undefined} // Disable layoutId on mobile for smoother standard transition
-                            className="modal-content"
-                            onClick={(e) => e.stopPropagation()}
-                            initial={{ y: '100%', opacity: 0 }}
-                            animate={{ y: 0, opacity: 1 }}
-                            exit={{ y: '100%', opacity: 0 }}
-                            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                            className="news-detail-sheet"
+                            initial={{ y: '100%' }}
+                            animate={{ y: 0 }}
+                            exit={{ y: '100%' }}
+                            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
                         >
+                            {/* Header with Back Button */}
+                            <div className="detail-header">
+                                <button className="back-btn" onClick={closeModal}>
+                                    <ArrowLeft size={20} />
+                                    <span>Back</span>
+                                </button>
+                                <div className="header-actions">
+                                    {selectedNews.link && (
+                                        <a href={selectedNews.link} target="_blank" rel="noopener noreferrer" className="external-link-btn">
+                                            <ExternalLink size={18} />
+                                        </a>
+                                    )}
+                                </div>
+                            </div>
 
-                            <button
-                                onClick={() => setSelectedNews(null)}
-                                style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', zIndex: 100, background: 'rgba(0,0,0,0.5)', border: 'none', color: '#fff', borderRadius: '50%', width: '36px', height: '36px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                            >
-                                <X size={20} />
-                            </button>
+                            {/* Scrollable Content Area */}
+                            <div className="detail-content">
+                                {/* Hero Image */}
+                                <div className="detail-hero">
+                                    <img src={selectedNews.image} alt={selectedNews.title} />
+                                    <div className="hero-gradient" />
+                                </div>
 
-                            {/* Standard Modal Header (Hidden in Reader Mode) */}
-                            {activeTab !== 'reader' && (
-                                <div className="modal-hero">
-                                    <motion.img
-                                        layoutId={`image-${selectedNews.id}`}
-                                        src={selectedNews.image}
-                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                    />
-                                    <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, #161b22 10%, transparent)' }} />
-                                    <div style={{ position: 'absolute', bottom: '2rem', left: '2rem', right: '2rem' }}>
-                                        <motion.h2 layoutId={`title-${selectedNews.id}`} style={{ fontSize: '2rem', lineHeight: '1.2', marginBottom: '1rem', fontWeight: 800 }}>
-                                            {selectedNews.title}
-                                        </motion.h2>
-                                        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', fontSize: '0.9rem', color: '#ccc' }}>
-                                            <span className="badge">{selectedNews.sentiment}</span>
-                                            <span>{selectedNews.source}</span>
-                                            <span>{selectedNews.timestamp}</span>
-                                        </div>
+                                {/* Article Info */}
+                                <div className="detail-info">
+                                    <div className="detail-meta">
+                                        <span className="source-badge">{selectedNews.source}</span>
+                                        <span className="timestamp">{selectedNews.timestamp}</span>
                                     </div>
-                                </div>
-                            )}
-
-                            {/* Modal Content Body */}
-                            <div className="modal-body" style={activeTab === 'reader' ? { padding: 0 } : { padding: '2rem' }}>
-
-                                {/* Tabs (Always Visible now to allow switching back) */}
-                                <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid #30363d', marginBottom: '2rem' }}>
-                                    <button className={`tab-btn ${activeTab === 'story' ? 'active' : ''}`} onClick={() => setActiveTab('story')} style={{ paddingBottom: '0.5rem', borderBottom: activeTab === 'story' ? '2px solid #1f6feb' : 'none', color: activeTab === 'story' ? '#fff' : '#8b949e', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', fontWeight: 600 }}>Quick Summary</button>
-                                    <button className={`tab-btn ${activeTab === 'reader' ? 'active' : ''}`} onClick={() => setActiveTab('reader')} style={{ paddingBottom: '0.5rem', borderBottom: activeTab === 'reader' ? '2px solid #1f6feb' : 'none', color: activeTab === 'reader' ? '#fff' : '#8b949e', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', fontWeight: 600 }}>Full Article</button>
-                                    <button className={`tab-btn ${activeTab === 'context' ? 'active' : ''}`} onClick={() => setActiveTab('context')} style={{ paddingBottom: '0.5rem', borderBottom: activeTab === 'context' ? '2px solid #1f6feb' : 'none', color: activeTab === 'context' ? '#fff' : '#8b949e', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', fontWeight: 600 }}>Context</button>
+                                    <h1 className="detail-title">{selectedNews.title}</h1>
                                 </div>
 
-                                <div>
-                                    {/* 1. Quick Summary */}
+                                {/* Tab Navigation */}
+                                <div className="detail-tabs">
+                                    <button
+                                        className={`detail-tab ${activeTab === 'story' ? 'active' : ''}`}
+                                        onClick={() => setActiveTab('story')}
+                                    >
+                                        Summary
+                                    </button>
+                                    <button
+                                        className={`detail-tab ${activeTab === 'reader' ? 'active' : ''}`}
+                                        onClick={() => setActiveTab('reader')}
+                                    >
+                                        Full Article
+                                    </button>
+                                    <button
+                                        className={`detail-tab ${activeTab === 'context' ? 'active' : ''}`}
+                                        onClick={() => setActiveTab('context')}
+                                    >
+                                        Context
+                                    </button>
+                                </div>
+
+                                {/* Tab Content */}
+                                <div className="detail-tab-content">
+                                    {/* Summary Tab */}
                                     {activeTab === 'story' && (
-                                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                                            <p style={{ fontSize: '1.2rem', lineHeight: '1.8', color: '#d0d7de', marginBottom: '2rem' }}>
-                                                {selectedNews.summary}
-                                            </p>
-                                            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                                                <button onClick={() => setActiveTab('reader')} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#1f6feb', color: '#fff', border: 'none', padding: '12px 24px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>
-                                                    <FileText size={18} /> Load Full Story
+                                        <div className="tab-panel">
+                                            <p className="summary-text">{selectedNews.summary}</p>
+
+                                            <div className="action-buttons">
+                                                <button className="action-btn primary" onClick={() => setActiveTab('reader')}>
+                                                    <FileText size={18} />
+                                                    <span>Read Full Article</span>
                                                 </button>
 
-                                                {/* Text-to-Speech Button */}
                                                 {isSupported && (
                                                     <button
+                                                        className={`action-btn ${isPlaying ? 'stop' : 'listen'}`}
                                                         onClick={() => isPlaying ? stop() : speak(selectedNews.summary, currentLang)}
-                                                        style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: isPlaying ? '#da3633' : '#238636', color: '#fff', border: 'none', padding: '12px 24px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', minWidth: '120px', justifyContent: 'center' }}
                                                     >
-                                                        {isPlaying ? (
-                                                            <><span className="spin" style={{ display: 'inline-block', width: 12, height: 12, border: '2px solid #fff', borderTopColor: 'transparent', borderRadius: '50%' }} /> Stop</>
-                                                        ) : (
-                                                            <><Play size={18} /> Listen</>
-                                                        )}
+                                                        {isPlaying ? <Square size={18} /> : <Play size={18} />}
+                                                        <span>{isPlaying ? 'Stop' : 'Listen'}</span>
                                                     </button>
                                                 )}
-
-                                                {selectedNews.link && (
-                                                    <a href={selectedNews.link} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.1)', color: '#fff', textDecoration: 'none', padding: '12px 24px', borderRadius: '8px', fontWeight: 'bold' }}>
-                                                        Open Source <ExternalLink size={18} />
-                                                    </a>
-                                                )}
                                             </div>
-                                        </motion.div>
+                                        </div>
                                     )}
 
-                                    {/* 2. Full Content Reader (MAGAZINE MODE) */}
+                                    {/* Full Article Tab */}
                                     {activeTab === 'reader' && (
-                                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="reader-mode">
+                                        <div className="tab-panel">
                                             {loadingArticle ? (
-                                                <div style={{ textAlign: 'center', padding: '4rem' }}>
-                                                    <div className="spin" style={{ display: 'inline-block', width: '30px', height: '30px', border: '3px solid #333', borderTopColor: '#fff', borderRadius: '50%', marginBottom: '1rem' }} />
-                                                    <p style={{ color: '#8b949e' }}>Curating content from {selectedNews.source}...</p>
+                                                <div className="loading-state">
+                                                    <div className="spinner" />
+                                                    <p>Loading article...</p>
                                                 </div>
-                                            ) : articleContent ? (
-                                                <>
-                                                    {/* Back Button */}
-                                                    <div style={{ position: 'absolute', top: '2rem', left: '2rem', zIndex: 60 }}>
-                                                        <button onClick={() => setActiveTab('story')} style={{ background: 'rgba(0,0,0,0.6)', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '20px', cursor: 'pointer', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem', fontWeight: 600 }}>
-                                                            ← Back
+                                            ) : articleContent && articleContent.content ? (
+                                                <div className="article-content">
+                                                    {isSupported && (
+                                                        <button
+                                                            className={`listen-btn ${isPlaying ? 'playing' : ''}`}
+                                                            onClick={() => isPlaying ? stop() : speak((articleContent.textContent || articleContent.content || '').replace(/<[^>]*>?/gm, ''), currentLang)}
+                                                        >
+                                                            {isPlaying ? <Square size={16} /> : <Play size={16} />}
+                                                            <span>{isPlaying ? 'Stop' : 'Listen to Article'}</span>
                                                         </button>
-                                                    </div>
-
-                                                    {/* Hero Section */}
-                                                    <div className="magazine-hero">
-                                                        <img src={selectedNews.image} alt="Hero" />
-                                                        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, #0f1115 0%, transparent 80%)' }} />
-                                                        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '2rem 2rem 4rem', background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%)' }}>
-                                                            <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-                                                                <h1 className="magazine-title" style={{ marginBottom: '1rem', textShadow: '0 4px 20px rgba(0,0,0,0.8)' }}>
-                                                                    {articleContent.title || selectedNews.title}
-                                                                </h1>
-                                                                <div className="magazine-meta" style={{ color: '#ccc', justifyContent: 'flex-start' }}>
-                                                                    <span style={{ color: '#fff', fontWeight: 700 }}>{selectedNews.source}</span>
-                                                                    <span>•</span>
-                                                                    <span>{selectedNews.timestamp}</span>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Article Body */}
-                                                    <div className="magazine-content">
-                                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                                                            <span className="badge" style={{ background: '#1f6feb', borderColor: '#1f6feb' }}>
-                                                                {selectedNews.category}
-                                                            </span>
-
-                                                            {/* Read Aloud Full Article */}
-                                                            {isSupported && (
-                                                                <button
-                                                                    onClick={() => isPlaying ? stop() : speak((articleContent.textContent || articleContent.content || '').replace(/<[^>]*>?/gm, ''), currentLang)}
-                                                                    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'none', border: '1px solid #30363d', color: '#8b949e', padding: '6px 12px', borderRadius: '50px', cursor: 'pointer', fontSize: '0.85rem' }}
-                                                                >
-                                                                    {isPlaying ? <Square size={14} fill="currentColor" /> : <Play size={14} fill="currentColor" />}
-                                                                    {isPlaying ? 'Stop Reading' : 'Listen to Article'}
-                                                                </button>
-                                                            )}
-                                                        </div>
-
-                                                        {/* DANGEROUSLY SET HTML */}
-                                                        <div
-                                                            className="magazine-body"
-                                                            dangerouslySetInnerHTML={{ __html: articleContent.content || '' }}
-                                                        />
-
-                                                        <div style={{ marginTop: '4rem', padding: '2rem', background: '#21262d', borderRadius: '12px', textAlign: 'center' }}>
-                                                            <p style={{ marginBottom: '1rem', color: '#8b949e' }}>Read the full story at the source</p>
-                                                            <a href={selectedNews.link} target="_blank" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#fff', color: '#000', padding: '10px 24px', borderRadius: '50px', fontWeight: 'bold', textDecoration: 'none' }}>
-                                                                Visit Original Source <ExternalLink size={16} />
-                                                            </a>
-                                                        </div>
-                                                    </div>
-                                                </>
+                                                    )}
+                                                    <div
+                                                        className="article-body"
+                                                        dangerouslySetInnerHTML={{ __html: articleContent.content || '' }}
+                                                    />
+                                                </div>
                                             ) : (
-                                                <div style={{ textAlign: 'center', padding: '5rem' }}>
-                                                    <p>Content unavailable.</p>
-                                                    <a href={selectedNews.link} target="_blank" style={{ color: '#1f6feb' }}>Open Website</a>
+                                                <div className="error-state">
+                                                    <p>Content not available</p>
+                                                    <a href={selectedNews.link} target="_blank" rel="noopener noreferrer" className="action-btn primary">
+                                                        <ExternalLink size={18} />
+                                                        <span>Read on Website</span>
+                                                    </a>
                                                 </div>
                                             )}
-                                        </motion.div>
+                                        </div>
                                     )}
 
-                                    {/* 3. Context */}
+                                    {/* Context Tab */}
                                     {activeTab === 'context' && (
-                                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                                            <div className="bias-meter">
-                                                <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1rem' }}>
-                                                    <Activity size={18} color="#1f6feb" /> Key Information
-                                                </h4>
-                                                <ul style={{ color: '#d0d7de', lineHeight: '1.8' }}>
-                                                    <li><strong>Source:</strong> {selectedNews.source}</li>
-                                                    <li><strong>Category:</strong> {selectedNews.category}</li>
-                                                    <li><strong>Published:</strong> {selectedNews.timestamp}</li>
-                                                    <li><strong>Language:</strong> {currentLang.toUpperCase()}</li>
-                                                </ul>
+                                        <div className="tab-panel">
+                                            <div className="context-card">
+                                                <h3>Article Details</h3>
+                                                <div className="context-item">
+                                                    <span className="label">Source</span>
+                                                    <span className="value">{selectedNews.source}</span>
+                                                </div>
+                                                <div className="context-item">
+                                                    <span className="label">Category</span>
+                                                    <span className="value">{selectedNews.category}</span>
+                                                </div>
+                                                <div className="context-item">
+                                                    <span className="label">Published</span>
+                                                    <span className="value">{selectedNews.timestamp}</span>
+                                                </div>
+                                                <div className="context-item">
+                                                    <span className="label">Sentiment</span>
+                                                    <span className={`value sentiment-${selectedNews.sentiment}`}>{selectedNews.sentiment}</span>
+                                                </div>
+                                                <div className="context-item">
+                                                    <span className="label">Language</span>
+                                                    <span className="value">{currentLang.toUpperCase()}</span>
+                                                </div>
                                             </div>
-                                        </motion.div>
+                                        </div>
                                     )}
                                 </div>
                             </div>
