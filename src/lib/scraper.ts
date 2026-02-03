@@ -14,32 +14,69 @@ export async function getFullArticle(url: string, targetLang: string = 'en') {
 
     try {
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 6000); // 6s timeout
+        const timeout = setTimeout(() => controller.abort(), 8000); // Increased timeout to 8s
 
+        // 1. Fetch with Real Browser Headers
         const response = await fetch(url, {
             signal: controller.signal,
             headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.9',
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache',
+                'Sec-Ch-Ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
+                'Sec-Ch-Ua-Mobile': '?0',
+                'Sec-Ch-Ua-Platform': '"Windows"',
+                'Sec-Fetch-Dest': 'document',
+                'Sec-Fetch-Mode': 'navigate',
+                'Sec-Fetch-Site': 'none',
+                'Sec-Fetch-User': '?1',
+                'Upgrade-Insecure-Requests': '1'
             }
         });
 
         clearTimeout(timeout);
 
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const html = await response.text();
+
+        // 2. Parse HTML
         const doc = new JSDOM(html, { url });
         const reader = new Readability(doc.window.document);
         const article = reader.parse();
 
-        if (!article) return null;
+        // 3. Validation & Block Detection
+        if (!article || !article.content) {
+            return null;
+        }
 
-        let content = article.textContent || '';
+        const textContent = article.textContent || '';
+
+        if (article.content.length < 200 || textContent.length < 100) {
+            console.warn("Scraper: Content too short or empty. Likely blocked.");
+            return null;
+        }
+
+        const lowerText = textContent.toLowerCase();
+        const blockedKeywords = [
+            'enable javascript', 'disable ad blocker', 'access denied',
+            'captcha', 'security check', 'robot', 'click here to continue',
+            'browser is not supported', 'please wait'
+        ];
+
+        if (blockedKeywords.some(kw => lowerText.includes(kw) && lowerText.length < 500)) {
+            console.warn("Scraper: Detected anti-bot/block page.");
+            return null;
+        }
+
+        let content = article.content || '';
         let title = article.title || '';
 
-        // Translate if needed
+        // 4. Translate (Optional)
         if (targetLang !== 'en' && ISO_CODES[targetLang]) {
             try {
-                // Translate chunks to avoid API limits (naive chunking)
-                const chunks = content.match(/[\s\S]{1,2000}/g) || [content];
+                const chunks = textContent.match(/[\s\S]{1,2000}/g) || [textContent];
                 const translatedChunks = await Promise.all(
                     chunks.map(async (chunk) => {
                         if (!chunk) return '';
@@ -51,18 +88,16 @@ export async function getFullArticle(url: string, targetLang: string = 'en') {
                 );
                 content = translatedChunks.join(' ');
 
-                // Translate Title
                 if (title) {
                     const resTitle = await translate(title, { to: ISO_CODES[targetLang] });
                     title = (resTitle as any).text || title;
                 }
-
             } catch (e) {
                 console.error("Article Translation Failed", e);
             }
         }
 
-        return { content, title, html: article.content || '' };
+        return { content: article.content, title, textContent: content };
     } catch (error) {
         console.error('Failed to scrape article:', error);
         return null;
