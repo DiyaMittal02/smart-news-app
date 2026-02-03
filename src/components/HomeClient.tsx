@@ -18,6 +18,7 @@ export default function HomeClient({ liveNews, currentRegion = 'global', current
     const [zenMode, setZenMode] = useState(false);
     const [weather, setWeather] = useState<WeatherData>({ temp: 22, condition: 'Clear', location: 'London' });
     const [showFilter, setShowFilter] = useState(false);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const router = useRouter();
 
     // Local state for filter modal
@@ -146,17 +147,31 @@ export default function HomeClient({ liveNews, currentRegion = 'global', current
             {/* Main Content Area */}
             <main className="main-content">
                 <header className="nexus-header">
-                    <div className="mobile-brand brand-section">
+                    <div className="mobile-brand brand-section" style={{ display: 'none', alignItems: 'center', gap: '1rem' }}>
+                        {/* Mobile Menu Toggle */}
+                        <button onClick={() => setZenMode(true)} style={{ background: 'none', border: 'none', color: '#fff' }}>
+                            <Menu size={24} onClick={(e) => { e.stopPropagation(); setZenMode(!zenMode); /* Re-using zenmode as toggle for now or better add new state */ }} />
+                        </button>
                         <div className="logo-box">N</div>
                     </div>
 
-                    <div className="header-controls ml-auto" style={{ marginLeft: 'auto' }}>
-                        <div className="weather-widget">
+                    {/* DESKTOP HEADER CONTROLS */}
+                    <div className="header-controls ml-auto" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' }}>
+                        {/* Mobile Menu Button - Visible only on mobile via CSS */}
+                        <button
+                            className="mobile-menu-btn"
+                            onClick={() => setIsMobileMenuOpen(true)}
+                            style={{ display: 'none', background: 'none', border: 'none', color: 'white', marginRight: 'auto' }}
+                        >
+                            <Menu size={24} />
+                        </button>
+
+                        <div className="weather-widget hidden md:flex">
                             <Cloud size={18} color="#facc15" />
                             <span className="weather-temp">{weather.temp}°C</span>
                         </div>
 
-                        <div className="zen-toggle" onClick={() => setZenMode(!zenMode)}>
+                        <div className="zen-toggle hidden md:flex" onClick={() => setZenMode(!zenMode)}>
                             <Zap size={16} color={zenMode ? '#2ea043' : '#8b949e'} />
                             <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>Zen</span>
                             <div className={`zen-switch ${zenMode ? 'active' : ''}`}>
@@ -164,7 +179,7 @@ export default function HomeClient({ liveNews, currentRegion = 'global', current
                             </div>
                         </div>
 
-                        <div style={{ marginLeft: '1rem', display: 'flex', alignItems: 'center' }}>
+                        <div style={{ marginLeft: '0.5rem', display: 'flex', alignItems: 'center' }}>
                             <button style={{ background: 'none', border: 'none', cursor: 'pointer' }} onClick={() => setShowFilter(!showFilter)}>
                                 <Filter size={20} color="#fff" />
                             </button>
@@ -173,6 +188,49 @@ export default function HomeClient({ liveNews, currentRegion = 'global', current
                 </header>
 
                 <NewsGrid initialNews={displayNews} currentLang={currentLang} />
+
+                {/* MOBILE NAVIGATION DRAWER */}
+                {isMobileMenuOpen && (
+                    <div className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-xl flex flex-col p-6 animate-in slide-in-from-left duration-200">
+                        <div className="flex justify-between items-center mb-8">
+                            <h2 className="text-2xl font-bold text-white">Menu</h2>
+                            <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 bg-white/10 rounded-full text-white">
+                                <X size={24} />
+                            </button>
+                        </div>
+
+                        <div className="flex flex-col gap-2 overflow-y-auto">
+                            {/* Specific Mobile Nav Items */}
+                            <div
+                                className="nav-item mb-4"
+                                onClick={() => { router.push('/reels'); setIsMobileMenuOpen(false); }}
+                                style={{ background: 'linear-gradient(45deg, #f09433 0%, #dc2743 100%)', border: 'none' }}
+                            >
+                                <Smartphone size={18} /> <span>News Reels</span>
+                            </div>
+
+                            <div
+                                className="nav-item mb-6"
+                                onClick={() => { router.push('/live-tv'); setIsMobileMenuOpen(false); }}
+                                style={{ background: 'linear-gradient(45deg, #0ea5e9 0%, #3b82f6 100%)', border: 'none' }}
+                            >
+                                <Film size={18} /> <span>Live TV</span>
+                            </div>
+
+                            <h3 className="nav-title mt-2">Categories</h3>
+                            {categories.map(cat => (
+                                <div
+                                    key={cat.id}
+                                    className={`nav-item ${currentCategory === cat.id ? 'active' : ''}`}
+                                    onClick={() => { changeCategory(cat.id); setIsMobileMenuOpen(false); }}
+                                >
+                                    <cat.icon size={18} />
+                                    <span>{cat.label}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
                 {/* Filter Modal - Uses NEW Settings Classes */}
                 {showFilter && (
@@ -199,28 +257,12 @@ export default function HomeClient({ liveNews, currentRegion = 'global', current
 
                                 <div className="filter-section">
                                     <span className="filter-title">{getLabel(currentLang, 'language')}</span>
-                                    <div className="filter-grid" style={{ gridTemplateColumns: '1fr 1fr 1fr', display: 'grid' }}>
-                                        <button onClick={() => setSelectedLang('en')} className={`filter-btn ${selectedLang === 'en' ? 'active' : ''}`}>English</button>
-                                        <button onClick={() => setSelectedLang('hi')} className={`filter-btn ${selectedLang === 'hi' ? 'active' : ''}`}>Hindi</button>
-                                        <button onClick={() => setSelectedLang('ta')} className={`filter-btn ${selectedLang === 'ta' ? 'active' : ''}`}>Tamil</button>
-                                        <button onClick={() => setSelectedLang('te')} className={`filter-btn ${selectedLang === 'te' ? 'active' : ''}`}>Telugu</button>
-                                        <button onClick={() => setSelectedLang('kn')} className={`filter-btn ${selectedLang === 'kn' ? 'active' : ''}`}>Kannada</button>
-                                        <button onClick={() => setSelectedLang('ml')} className={`filter-btn ${selectedLang === 'ml' ? 'active' : ''}`}>Malayalam</button>
-                                        <button onClick={() => setSelectedLang('bn')} className={`filter-btn ${selectedLang === 'bn' ? 'active' : ''}`}>Bengali</button>
-                                        <button onClick={() => setSelectedLang('mr')} className={`filter-btn ${selectedLang === 'mr' ? 'active' : ''}`}>Marathi</button>
-                                        <button onClick={() => setSelectedLang('gu')} className={`filter-btn ${selectedLang === 'gu' ? 'active' : ''}`}>Gujarati</button>
-                                        <button onClick={() => setSelectedLang('pa')} className={`filter-btn ${selectedLang === 'pa' ? 'active' : ''}`}>Punjabi</button>
-                                    </div>
-                                </div>
-
-                                {/* Mobile Categories */}
-                                <div className="filter-section">
-                                    <span className="filter-title">{getLabel(currentLang, 'quickJump')}</span>
-                                    <div className="filter-grid">
-                                        <button onClick={() => changeCategory('all')} className={`filter-btn ${currentCategory === 'all' ? 'active' : ''}`}>{getLabel(currentLang, 'topStories')}</button>
-                                        <button onClick={() => changeCategory('tech')} className={`filter-btn ${currentCategory === 'tech' ? 'active' : ''}`}>{getLabel(currentLang, 'tech')}</button>
-                                        <button onClick={() => changeCategory('business')} className={`filter-btn ${currentCategory === 'business' ? 'active' : ''}`}>{getLabel(currentLang, 'business')}</button>
-                                        <button onClick={() => changeCategory('sports')} className={`filter-btn ${currentCategory === 'sports' ? 'active' : ''}`}>{getLabel(currentLang, 'sports')}</button>
+                                    <div className="filter-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', display: 'grid' }}>
+                                        {['en', 'hi', 'ta', 'te', 'kn', 'ml', 'bn', 'mr', 'gu', 'pa'].map(l => (
+                                            <button key={l} onClick={() => setSelectedLang(l)} className={`filter-btn ${selectedLang === l ? 'active' : ''} uppercase`}>
+                                                {l}
+                                            </button>
+                                        ))}
                                     </div>
                                 </div>
 

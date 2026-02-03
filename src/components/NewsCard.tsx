@@ -15,27 +15,16 @@ export default function NewsCard({ news, onClick }: NewsCardProps) {
             layoutId={`card-${news.id}`}
             className="news-card"
             onClick={() => onClick(news)}
-            whileHover={{ y: -5, boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}
+            whileHover={{ y: -5 }}
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            style={{
-                background: '#161b22',
-                borderRadius: '12px',
-                overflow: 'hidden',
-                cursor: 'pointer',
-                border: '1px solid #30363d',
-                position: 'relative',
-                display: 'flex',
-                flexDirection: 'column',
-                height: '100%'
-            }}
         >
-            <div style={{ position: 'relative', height: '200px', overflow: 'hidden' }}>
+            <div className="card-image-container">
                 <motion.img
                     layoutId={`image-${news.id}`}
                     src={news.image}
                     alt={news.title}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    className="card-image"
                 />
                 <div style={{ position: 'absolute', top: '10px', right: '10px' }}>
                     <span className="badge" style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }}>
@@ -44,7 +33,7 @@ export default function NewsCard({ news, onClick }: NewsCardProps) {
                 </div>
             </div>
 
-            <div style={{ padding: '1.25rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
+            <div className="card-content">
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.75rem', fontSize: '0.75rem', color: '#8b949e' }}>
                     <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <User size={12} /> {news.source}
@@ -57,7 +46,7 @@ export default function NewsCard({ news, onClick }: NewsCardProps) {
 
                 <motion.h3
                     layoutId={`title-${news.id}`}
-                    style={{ fontSize: '1.1rem', fontWeight: 700, lineHeight: '1.4', marginBottom: '0.75rem', color: '#e6edf3', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
+                    className="card-title"
                 >
                     {news.title}
                 </motion.h3>
@@ -66,7 +55,7 @@ export default function NewsCard({ news, onClick }: NewsCardProps) {
                     {news.summary}
                 </p>
 
-                <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div className="card-meta">
                     <span className={`sentiment-indicator ${news.sentiment}`}>
                         <span className="dot" />
                         {news.sentiment}

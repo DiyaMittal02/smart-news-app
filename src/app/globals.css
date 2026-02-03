@@ -70,17 +70,144 @@ button {
   display: none !important;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 768px) {
+
+  /* === LAYOUT ADJUSTMENTS === */
   .sidebar {
     display: none;
   }
 
   .main-content {
     margin-left: 0;
+    width: 100%;
   }
 
   .mobile-brand {
     display: flex !important;
+  }
+
+  .mobile-menu-btn {
+    display: block !important;
+  }
+
+  .nexus-header {
+    padding: 0 1rem;
+    height: 70px;
+    justify-content: space-between;
+  }
+
+  .header-controls {
+    gap: 0.5rem;
+  }
+
+  .nexus-container {
+    padding: 1rem;
+    width: 100%;
+  }
+
+  /* === GRID & CARDS === */
+  .news-grid {
+    grid-template-columns: 1fr;
+    /* Single column on mobile */
+    gap: 1.5rem;
+  }
+
+  .news-card {
+    height: auto;
+    min-height: 400px;
+  }
+
+  .card-image-container {
+    height: 200px;
+  }
+
+  .card-title {
+    font-size: 1.1rem;
+  }
+
+  /* === MODALS === */
+  .modal-overlay {
+    padding: 0;
+    align-items: flex-end;
+    /* Sheet-like or full screen */
+  }
+
+  .modal-content {
+    height: 100vh;
+    max-height: 100vh;
+    border-radius: 0;
+    border: none;
+  }
+
+  .settings-modal {
+    max-height: 80vh;
+    border-radius: 20px 20px 0 0;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  /* === MAGAZINE READER MODE === */
+  .magazine-hero {
+    height: 250px;
+  }
+
+  .magazine-content {
+    padding: 0 1.5rem 2rem;
+    margin-top: -40px;
+  }
+
+  .magazine-title {
+    font-size: 2rem;
+  }
+
+  .magazine-body {
+    font-size: 1.1rem;
+    line-height: 1.6;
+  }
+
+  /* === UTILS === */
+  .toolbar {
+    width: 100%;
+    margin-bottom: 1.5rem;
+  }
+
+  .search-input {
+    width: 100%;
+  }
+}
+
+@media (min-width: 769px) {
+  .mobile-menu-btn {
+    display: none !important;
+  }
+}
+
+/* === ANIMATIONS === */
+.animate-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.slide-in-from-left {
+  animation: slideLeft 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideLeft {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(0);
   }
 }
 
