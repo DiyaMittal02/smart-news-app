@@ -4,7 +4,10 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { NewsItem, WeatherData } from '@/lib/types';
 import NewsGrid from '@/components/NewsGrid';
-import { Cloud, Zap, Filter, Menu, Home, Briefcase, Cpu, Activity, Play, Globe, X, Smartphone, Film } from 'lucide-react';
+import {
+    Cloud, Zap, Filter, Home, Briefcase, Cpu, Activity,
+    Play, Globe, X, Smartphone, Film, Sparkles
+} from 'lucide-react';
 import { getLabel } from '@/lib/locales';
 
 interface HomeProps {
@@ -18,26 +21,21 @@ export default function HomeClient({ liveNews, currentRegion = 'global', current
     const [zenMode, setZenMode] = useState(false);
     const [weather, setWeather] = useState<WeatherData>({ temp: 22, condition: 'Clear', location: 'London' });
     const [showFilter, setShowFilter] = useState(false);
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const router = useRouter();
 
-    // Local state for filter modal
     const [selectedRegion, setSelectedRegion] = useState(currentRegion);
     const [selectedLang, setSelectedLang] = useState(currentLang);
     const [isApplying, setIsApplying] = useState(false);
 
-    // Sync state with props
     useEffect(() => {
         setSelectedRegion(currentRegion);
         setSelectedLang(currentLang);
     }, [currentRegion, currentLang]);
 
-    // Filter news if Zen Mode is active
     const displayNews = zenMode
         ? liveNews.filter(n => n.sentiment === 'positive' || n.category.includes('Tech') || n.category.includes('Science'))
         : liveNews;
 
-    // Real Weather Fetching
     useEffect(() => {
         if ("geolocation" in navigator) {
             navigator.geolocation.getCurrentPosition(async (position) => {
@@ -66,7 +64,6 @@ export default function HomeClient({ liveNews, currentRegion = 'global', current
         router.refresh();
     };
 
-    // Categories Sidebar Data
     const categories = [
         { id: 'all', label: getLabel(currentLang, 'topStories'), icon: Home },
         { id: 'business', label: getLabel(currentLang, 'business'), icon: Briefcase },
@@ -79,50 +76,49 @@ export default function HomeClient({ liveNews, currentRegion = 'global', current
 
     return (
         <div className="app-layout">
-
             {/* Sidebar Navigation */}
             <aside className="sidebar">
-                <div className="brand-section mb-8" style={{ marginBottom: '2rem' }}>
-                    <div className="logo-box" style={{ width: 36, height: 36, fontSize: '1.2rem' }}>N</div>
-                    <h1 className="brand-title" style={{ fontSize: '1.4rem' }}>{getLabel(currentLang, 'appTitle')}</h1>
+                <div className="sidebar-brand">
+                    <div className="logo-icon">N</div>
+                    <div className="brand-text">
+                        <span className="brand-name">Nexus</span>
+                        <span className="brand-tagline">Smart News</span>
+                    </div>
                 </div>
 
+                {/* Featured Links */}
                 <div className="nav-section">
-                    <h3 className="nav-title">{getLabel(currentLang, 'feeds')}</h3>
+                    <div className="nav-section-title">Discover</div>
 
-                    {/* New Unique Feature: Reels */}
                     <div
-                        className="nav-item mb-4"
+                        className="nav-item featured"
                         onClick={() => router.push('/reels')}
                         style={{
-                            background: 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)',
-                            color: 'white',
-                            borderRadius: '12px',
-                            border: 'none',
-                            fontWeight: 'bold'
+                            background: 'linear-gradient(135deg, rgba(236, 72, 153, 0.15), rgba(124, 58, 237, 0.15))',
+                            borderColor: 'rgba(236, 72, 153, 0.3)'
                         }}
                     >
                         <Smartphone size={18} />
                         <span>News Reels</span>
+                        <Sparkles size={14} style={{ marginLeft: 'auto', color: '#ec4899' }} />
                     </div>
 
-                    {/* Live TV Feature */}
                     <div
-                        className="nav-item mb-4"
+                        className="nav-item"
                         onClick={() => router.push('/live-tv')}
                         style={{
-                            background: 'linear-gradient(45deg, #0ea5e9 0%, #3b82f6 50%, #8b5cf6 100%)',
-                            color: 'white',
-                            borderRadius: '12px',
-                            border: 'none',
-                            fontWeight: 'bold'
+                            background: 'rgba(6, 182, 212, 0.1)',
+                            borderColor: 'rgba(6, 182, 212, 0.2)'
                         }}
                     >
                         <Film size={18} />
                         <span>Live TV</span>
                     </div>
+                </div>
 
-
+                {/* Categories */}
+                <div className="nav-section">
+                    <div className="nav-section-title">Categories</div>
                     {categories.map(cat => (
                         <div
                             key={cat.id}
@@ -135,8 +131,9 @@ export default function HomeClient({ liveNews, currentRegion = 'global', current
                     ))}
                 </div>
 
-                <div className="nav-section mt-auto" style={{ marginTop: 'auto' }}>
-                    <h3 className="nav-title">{getLabel(currentLang, 'settings')}</h3>
+                {/* Settings */}
+                <div className="nav-section" style={{ marginTop: 'auto' }}>
+                    <div className="nav-section-title">Settings</div>
                     <div className="nav-item" onClick={() => setShowFilter(true)}>
                         <Filter size={18} />
                         <span>{getLabel(currentLang, 'preferences')}</span>
@@ -144,111 +141,86 @@ export default function HomeClient({ liveNews, currentRegion = 'global', current
                 </div>
             </aside>
 
-            {/* Main Content Area */}
+            {/* Main Content */}
             <main className="main-content">
                 <header className="nexus-header">
-                    <div className="mobile-brand brand-section" style={{ display: 'none', alignItems: 'center', gap: '1rem' }}>
-                        {/* Mobile Menu Toggle */}
-                        <button onClick={() => setZenMode(true)} style={{ background: 'none', border: 'none', color: '#fff' }}>
-                            <Menu size={24} onClick={(e) => { e.stopPropagation(); setZenMode(!zenMode); /* Re-using zenmode as toggle for now or better add new state */ }} />
-                        </button>
-                        <div className="logo-box">N</div>
+                    {/* Mobile Brand */}
+                    <div className="mobile-brand" style={{ display: 'none', alignItems: 'center', gap: 12 }}>
+                        <div className="logo-icon" style={{ width: 36, height: 36, fontSize: '1rem' }}>N</div>
+                        <span style={{ fontWeight: 700, fontSize: '1.1rem' }}>Nexus</span>
                     </div>
 
-                    {/* DESKTOP HEADER CONTROLS */}
-                    <div className="header-controls ml-auto" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' }}>
-                        {/* Mobile Menu Button - Visible only on mobile via CSS */}
-                        <button
-                            className="mobile-menu-btn"
-                            onClick={() => setIsMobileMenuOpen(true)}
-                            style={{ display: 'none', background: 'none', border: 'none', color: 'white', marginRight: 'auto' }}
-                        >
-                            <Menu size={24} />
-                        </button>
-
-                        <div className="weather-widget hidden md:flex">
-                            <Cloud size={18} color="#facc15" />
-                            <span className="weather-temp">{weather.temp}°C</span>
+                    <div className="header-controls" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' }}>
+                        <div className="weather-widget">
+                            <Cloud size={16} color="#facc15" />
+                            <span>{weather.temp}°C</span>
                         </div>
 
-                        <div className="zen-toggle hidden md:flex" onClick={() => setZenMode(!zenMode)}>
-                            <Zap size={16} color={zenMode ? '#2ea043' : '#8b949e'} />
-                            <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>Zen</span>
+                        <div className="zen-toggle" onClick={() => setZenMode(!zenMode)}>
+                            <Zap size={14} color={zenMode ? '#10b981' : '#71717a'} />
+                            <span style={{ fontSize: '0.85rem', fontWeight: 500 }}>Zen</span>
                             <div className={`zen-switch ${zenMode ? 'active' : ''}`}>
                                 <div className="zen-dot" />
                             </div>
                         </div>
 
-                        <div style={{ marginLeft: '0.5rem', display: 'flex', alignItems: 'center' }}>
-                            <button style={{ background: 'none', border: 'none', cursor: 'pointer' }} onClick={() => setShowFilter(!showFilter)}>
-                                <Filter size={20} color="#fff" />
-                            </button>
-                        </div>
+                        <button
+                            onClick={() => setShowFilter(true)}
+                            style={{
+                                background: 'rgba(255,255,255,0.05)',
+                                border: '1px solid rgba(255,255,255,0.1)',
+                                borderRadius: '50%',
+                                width: 40,
+                                height: 40,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            <Filter size={18} color="#a1a1aa" />
+                        </button>
                     </div>
                 </header>
 
                 <NewsGrid initialNews={displayNews} currentLang={currentLang} />
 
-                {/* MOBILE NAVIGATION DRAWER */}
-                {isMobileMenuOpen && (
-                    <div className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-xl flex flex-col p-6 animate-in slide-in-from-left duration-200">
-                        <div className="flex justify-between items-center mb-8">
-                            <h2 className="text-2xl font-bold text-white">Menu</h2>
-                            <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 bg-white/10 rounded-full text-white">
-                                <X size={24} />
-                            </button>
-                        </div>
-
-                        <div className="flex flex-col gap-2 overflow-y-auto">
-                            {/* Specific Mobile Nav Items */}
-                            <div
-                                className="nav-item mb-4"
-                                onClick={() => { router.push('/reels'); setIsMobileMenuOpen(false); }}
-                                style={{ background: 'linear-gradient(45deg, #f09433 0%, #dc2743 100%)', border: 'none' }}
-                            >
-                                <Smartphone size={18} /> <span>News Reels</span>
-                            </div>
-
-                            <div
-                                className="nav-item mb-6"
-                                onClick={() => { router.push('/live-tv'); setIsMobileMenuOpen(false); }}
-                                style={{ background: 'linear-gradient(45deg, #0ea5e9 0%, #3b82f6 100%)', border: 'none' }}
-                            >
-                                <Film size={18} /> <span>Live TV</span>
-                            </div>
-
-                            <h3 className="nav-title mt-2">Categories</h3>
-                            {categories.map(cat => (
-                                <div
-                                    key={cat.id}
-                                    className={`nav-item ${currentCategory === cat.id ? 'active' : ''}`}
-                                    onClick={() => { changeCategory(cat.id); setIsMobileMenuOpen(false); }}
-                                >
-                                    <cat.icon size={18} />
-                                    <span>{cat.label}</span>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
-
-                {/* Filter Modal - Uses NEW Settings Classes */}
+                {/* Filter Modal */}
                 {showFilter && (
                     <div className="modal-overlay" onClick={() => setShowFilter(false)}>
                         <div className="settings-modal" onClick={e => e.stopPropagation()}>
                             <div className="settings-header">
-                                <h2>{getLabel(currentLang, 'preferences')}</h2>
-                                <button onClick={() => setShowFilter(false)} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', cursor: 'pointer', padding: '8px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                    <X size={20} />
+                                <h2>Preferences</h2>
+                                <button
+                                    onClick={() => setShowFilter(false)}
+                                    style={{
+                                        background: 'rgba(255,255,255,0.1)',
+                                        border: 'none',
+                                        borderRadius: '50%',
+                                        width: 36,
+                                        height: 36,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        cursor: 'pointer',
+                                        color: '#fff'
+                                    }}
+                                >
+                                    <X size={18} />
                                 </button>
                             </div>
 
                             <div className="settings-body">
                                 <div className="filter-section">
-                                    <span className="filter-title">{getLabel(currentLang, 'region')}</span>
+                                    <div className="filter-title">Region</div>
                                     <div className="filter-grid">
                                         {['global', 'india', 'usa'].map(r => (
-                                            <button key={r} onClick={() => setSelectedRegion(r)} className={`filter-btn ${selectedRegion === r ? 'active' : ''} capitalize`}>
+                                            <button
+                                                key={r}
+                                                onClick={() => setSelectedRegion(r)}
+                                                className={`filter-btn ${selectedRegion === r ? 'active' : ''}`}
+                                                style={{ textTransform: 'capitalize' }}
+                                            >
                                                 {r}
                                             </button>
                                         ))}
@@ -256,22 +228,40 @@ export default function HomeClient({ liveNews, currentRegion = 'global', current
                                 </div>
 
                                 <div className="filter-section">
-                                    <span className="filter-title">{getLabel(currentLang, 'language')}</span>
-                                    <div className="filter-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', display: 'grid' }}>
-                                        {['en', 'hi', 'ta', 'te', 'kn', 'ml', 'bn', 'mr', 'gu', 'pa'].map(l => (
-                                            <button key={l} onClick={() => setSelectedLang(l)} className={`filter-btn ${selectedLang === l ? 'active' : ''} uppercase`}>
-                                                {l}
+                                    <div className="filter-title">Language</div>
+                                    <div className="filter-grid">
+                                        {[
+                                            { code: 'en', label: 'EN' },
+                                            { code: 'hi', label: 'HI' },
+                                            { code: 'ta', label: 'TA' },
+                                            { code: 'te', label: 'TE' },
+                                            { code: 'kn', label: 'KN' },
+                                            { code: 'ml', label: 'ML' },
+                                            { code: 'bn', label: 'BN' },
+                                            { code: 'mr', label: 'MR' },
+                                            { code: 'gu', label: 'GU' },
+                                        ].map(l => (
+                                            <button
+                                                key={l.code}
+                                                onClick={() => setSelectedLang(l.code)}
+                                                className={`filter-btn ${selectedLang === l.code ? 'active' : ''}`}
+                                            >
+                                                {l.label}
                                             </button>
                                         ))}
                                     </div>
                                 </div>
 
-                                <button className="apply-btn" onClick={() => {
-                                    setIsApplying(true);
-                                    applyFilters();
-                                    setTimeout(() => setIsApplying(false), 2000);
-                                }} disabled={isApplying}>
-                                    {isApplying ? 'Updating...' : getLabel(currentLang, 'update')}
+                                <button
+                                    className="apply-btn"
+                                    onClick={() => {
+                                        setIsApplying(true);
+                                        applyFilters();
+                                        setTimeout(() => setIsApplying(false), 1500);
+                                    }}
+                                    disabled={isApplying}
+                                >
+                                    {isApplying ? 'Applying...' : 'Apply Changes'}
                                 </button>
                             </div>
                         </div>
